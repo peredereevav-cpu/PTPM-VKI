@@ -24,51 +24,83 @@ logging.basicConfig(
     ],
 )
 
-from triangle import process_triangle  # noqa: E402  (импорт после настройки логов)
+from triangle import process_triangle  # noqa: E402
+
+
+# Команды для выхода из программы
+EXIT_COMMANDS = {"exit", "quit", "q", "выход"}
+
+
+def _read_side(prompt: str) -> str:
+    """
+    Запрашивает у пользователя сторону.
+    Если пользователь ввёл команду выхода — возвращает её же (обработается выше).
+    """
+    return input(prompt).strip()
 
 
 def Main():
     logging.info("Логгер успешно сконфигурирован")
     logging.info("Приложение запущено")
 
-    print("ВВедите длины сторон треугольника")
-    side_a = input("Сторона A:")
-    side_b = input("Сторона B:")
-    side_c = input("Сторона C:")
+    print("=" * 60)
+    print("Вычисление вида треугольника и координат его вершин")
+    print("Введите длины трёх сторон (можно дробные числа, например 3.5).")
+    print("Для выхода введите: exit, quit, q или выход.")
+    print("=" * 60)
 
-    logging.info("Пользовательский ввод: A=%r, B=%r, C=%r", side_a, side_b, side_c)
+    while True:  # <-- бесконечный цикл
+        try:
+            side_a = _read_side("Сторона A: ")
+            if side_a.lower() in EXIT_COMMANDS:
+                logging.info("Пользователь запросил выход (на стороне A)")
+                break
 
-    try:
-        triangle_type, vertices = process_triangle(side_a, side_b, side_c)
-        logging.info("Результат: тип=%r, вершины=%s", triangle_type, vertices)
-        print("\n--- Результат ---")
-        print(f"Тип треугольника: {triangle_type if triangle_type else '(пусто)'}")
-        print(f"Координаты вершин: {vertices}")
+            side_b = _read_side("Сторона B: ")
+            if side_b.lower() in EXIT_COMMANDS:
+                logging.info("Пользователь запросил выход (на стороне B)")
+                break
 
-    except Exception:
-        logging.error("Ошибка при обработке ввода")
-        logging.exception("Трассировка:")
-        print("Произошла непредвиденная ошибка. Подробности в логе.")
-    #Пример входных данных. Можно заменить на input() для интерактивного режима.
-    # test_cases = [
-    #     ("0.2", "0.3", "0.5"),        # равносторонний
-    #     ("3", "3", "5"),        # равнобедренный
-    #     ("3", "4", "5"),        # разносторонний
-    #     ("1", "1", "10"),       # не треугольник
-    #     ("abc", "4", "5"),      # нечисловые данные
-    #     ("-3", "4", "5"),       # не положительное число
-    # ]
-    #
-    # for case in test_cases:
-    #     try:
-    #         logging.info("Входные данные: %s", case)
-    #         triangle_type, vertices = process_triangle(*case)
-    #         logging.info("Результат: тип=%r, вершины=%s", triangle_type, vertices)
-    #     except Exception:
-    #         logging.error("Ошибка при обработке случая %s", case)
-    #         logging.exception("Трассировка:")
+            side_c = _read_side("Сторона C: ")
+            if side_c.lower() in EXIT_COMMANDS:
+                logging.info("Пользователь запросил выход (на стороне C)")
+                break
+
+            logging.info(
+                "Входные данные: A=%r, B=%r, C=%r", side_a, side_b, side_c
+            )
+
+            triangle_type, vertices = process_triangle(side_a, side_b, side_c)
+
+            # Красивый вывод результата пользователю
+            print("-" * 60)
+            if triangle_type == "":
+                print("Результат: ошибка входных данных (не число)")
+            elif triangle_type == "не треугольник":
+                print("Результат: треугольник с такими сторонами не существует")
+            else:
+                print(f"Тип треугольника: {triangle_type}")
+                print(f"Координаты вершин: {vertices}")
+            print("-" * 60)
+
+            logging.info(
+                "Результат: тип=%r, вершины=%s", triangle_type, vertices
+            )
+
+        except KeyboardInterrupt:
+            # Ctrl+C — вежливо выходим
+            logging.info("Прервано пользователем (Ctrl+C)")
+            print("\nВыход по Ctrl+C.")
+            break
+
+        except Exception:
+            # Ловим всё остальное, чтобы программа не падала
+            logging.error("Непредвиденная ошибка в цикле")
+            logging.exception("Трассировка:")
+            print("Произошла непредвиденная ошибка, попробуйте снова.\n")
 
     logging.info("Приложение завершено")
+    print("До свидания!")
 
 
 if __name__ == "__main__":
